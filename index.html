@@ -169,22 +169,59 @@
     }
     .btn:active{ transform: translateY(-50%) scale(.97); }
 
-    #yesBtn{
-      left: 16px;
-      color:#fff;
-      background: linear-gradient(180deg, var(--yes1), var(--yes2));
-      z-index: 5;
-      padding: 12px 16px;
-    }
-    #yesBtn img{
-      width: 30px;
-      height: 30px;
-      object-fit: contain;
-      display:block;
-      filter: drop-shadow(0 6px 8px rgba(0,0,0,.18));
-      user-select:none;
-      pointer-events:none;
-    }
+    <!-- QUICK FIX: replace your current YES button + add these CSS rules -->
+
+<!-- 1) Replace this (current YES button)
+<button class="btn" id="yesBtn" aria-label="Yes">
+  <img src="yes.png" alt="Yes" />
+</button>
+-->
+
+<!-- With this (image-as-button) -->
+<button id="yesBtn" class="yesIconBtn" aria-label="Yes">
+  <img src="yes.png" alt="Yes" />
+</button>
+
+
+<style>
+  /* 2) Add this CSS anywhere in your <style> (preferably near other button styles) */
+
+  .yesIconBtn{
+    position:absolute;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    z-index: 5;
+
+    border: 0;
+    background: transparent;
+    padding: 0;
+    margin: 0;
+
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+
+    /* optional: feel nicer */
+    transition: transform .12s ease, filter .12s ease;
+  }
+
+  .yesIconBtn:hover{ filter: brightness(1.05); }
+  .yesIconBtn:active{ transform: translateY(-50%) scale(.97); }
+
+  .yesIconBtn img{
+    width: 96px;          /* ✅ make YES icon larger (tweak this) */
+    height: auto;
+    display:block;
+    user-select:none;
+    pointer-events:none;
+    filter: drop-shadow(0 14px 18px rgba(0,0,0,.28));
+  }
+
+  @media (max-width: 420px){
+    .yesIconBtn img{ width: 84px; }
+  }
+</style>
 
     #noBtn{
       left: 50%;
