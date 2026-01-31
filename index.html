@@ -32,7 +32,6 @@
       overflow:hidden;
       font-family: "Playfair Display", Georgia, serif;
       color: var(--text);
-
       background:
         linear-gradient(rgba(0,0,0,.30), rgba(0,0,0,.30)),
         url("background.jpg") center / cover no-repeat fixed;
@@ -78,7 +77,6 @@
       overflow:hidden;
     }
 
-    /* Ninja sticker (transparent PNG). Hidden by default, shows only after first No attempt. */
     .ninja{
       position:absolute;
       right: 10px;
@@ -102,12 +100,11 @@
       filter: drop-shadow(0 12px 16px rgba(0,0,0,.35));
     }
 
-    /* Bijan sticker (shows only after YES) */
     .bijan{
       position:absolute;
       right: 10px;
       top: 10px;
-      width: 78px;           /* bigger than ninja */
+      width: 78px;
       height:auto;
       z-index: 8;
       pointer-events:none;
@@ -143,7 +140,6 @@
       overflow:hidden;
     }
 
-    /* Base button polish */
     .btn{
       -webkit-tap-highlight-color: transparent;
       border:0;
@@ -160,8 +156,6 @@
       transform: translateY(-50%);
       z-index: 4;
       touch-action: manipulation;
-
-      /* nicer feel */
       transition: transform .12s ease, filter .12s ease, box-shadow .12s ease;
       display:flex;
       align-items:center;
@@ -175,13 +169,12 @@
     }
     .btn:active{ transform: translateY(-50%) scale(.97); }
 
-    /* YES becomes an icon button using yes.png */
     #yesBtn{
       left: 16px;
       color:#fff;
       background: linear-gradient(180deg, var(--yes1), var(--yes2));
       z-index: 5;
-      padding: 12px 16px;     /* slightly tighter for icon */
+      padding: 12px 16px;
     }
     #yesBtn img{
       width: 30px;
@@ -193,7 +186,6 @@
       pointer-events:none;
     }
 
-    /* NO is also polished, can optionally be swapped to an icon later */
     #noBtn{
       left: 50%;
       color:#fff;
@@ -201,7 +193,22 @@
       z-index: 4;
     }
 
-    /* Dog sticker (transparent PNG). No white box, no border. */
+    /* Celebration GIF banner (hidden until YES) */
+    .celebration{
+      position:absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      width: calc(100% - 32px); /* spans across where both buttons were */
+      max-width: 520px;
+      height:auto;
+      z-index: 6;
+      display:none;
+      pointer-events:none;
+      filter: drop-shadow(0 14px 18px rgba(0,0,0,.25));
+    }
+    .celebration.show{ display:block; }
+
     .dogChaser{
       position:absolute;
       width: 96px;
@@ -213,7 +220,6 @@
       transition: left .18s ease, top .18s ease, transform .12s ease;
       pointer-events:none;
       opacity: 1;
-
       background: transparent;
       border: none;
       box-shadow: none;
@@ -242,7 +248,6 @@
       font-size: clamp(18px, 3.8vw, 22px);
     }
 
-    /* Me sticker (transparent PNG). No white frame. */
     .photo{
       width: min(360px, 82vw);
       height:auto;
@@ -300,7 +305,6 @@
       <div class="title">Will you be my valentine?</div>
 
       <div class="arena" id="arena">
-        <!-- YES is now an icon button -->
         <button class="btn" id="yesBtn" aria-label="Yes">
           <img src="yes.png" alt="Yes" />
         </button>
@@ -310,6 +314,9 @@
         </div>
 
         <button class="btn" id="noBtn">No</button>
+
+        <!-- Appears after YES, spans across the arena -->
+        <img class="celebration" id="celebration" src="celebration.gif" alt="celebration" />
       </div>
 
       <div class="result" id="result">
@@ -337,12 +344,11 @@
     const yesSound = document.getElementById("yesSound");
     const ninja = document.getElementById("ninja");
     const bijan = document.getElementById("bijan");
+    const celebration = document.getElementById("celebration");
 
     let yesClicked = false;
     let lastBarkMs = 0;
     let lastYesMs = 0;
-
-    // First "No attempt" logic
     let noAttemptedOnce = false;
 
     function playBark(){
@@ -358,7 +364,7 @@
 
     function playYes(){
       const now = Date.now();
-      if (now - lastYesMs < 600) return; // guard double-clicks
+      if (now - lastYesMs < 600) return;
       lastYesMs = now;
       try{
         yesSound.currentTime = 0;
@@ -404,14 +410,11 @@
       if (noAttemptedOnce) return;
       noAttemptedOnce = true;
 
-      // show ninja only after No is attempted
       ninja.classList.remove("hidden");
       ninja.classList.add("show");
 
-      // bring dog forward forever (blocks visually)
       dogChaser.classList.add("front");
 
-      // place dog directly over NO button center initially
       const a = arena.getBoundingClientRect();
       const b = noBtn.getBoundingClientRect();
       const noCenterX = (b.left - a.left) + b.width / 2;
@@ -433,7 +436,6 @@
       const minX = pad, maxX = a.width - btnW - pad;
       const minY = pad, maxY = a.height - btnH - pad;
 
-      // Avoid overlapping YES
       const yesRect = yesBtn.getBoundingClientRect();
       const yesLocal = { x: yesRect.left - a.left, y: yesRect.top - a.top, w: yesRect.width, h: yesRect.height };
 
@@ -466,7 +468,6 @@
       noBtn.style.top  = (ny + btnH/2) + "px";
       noBtn.style.transform = "translateY(-50%)";
 
-      // dog stays in front & chases NO
       chaseDogTo(nx + btnW/2, ny + btnH/2);
     }
 
@@ -497,7 +498,6 @@
       if (Math.hypot(ax - bx, ay - by) < 115) moveNoAway(ax, ay);
     });
 
-    // Hearts + flowers + sparkles (all float up)
     function spawnLoveRain(){
       flowers.classList.add("show");
       const emojis = ["💖","💘","💝","💕","💗","💓","🌹","🌸","🌺","💐","🌷","✨"];
@@ -563,22 +563,24 @@
       if (yesClicked) return;
       yesClicked = true;
 
-      // play YES song
       playYes();
 
-      // hide ninja when YES is clicked (even if it appeared)
       ninja.classList.remove("show");
       ninja.classList.add("hidden");
 
-      // remove caspy entirely so it can’t reappear on resize or via other code
       dogChaser.remove();
 
-      // show Bijan sticker in top-right
+      // remove both buttons
+      yesBtn.remove();
+      noBtn.remove();
+
+      // show celebration GIF banner across arena
+      celebration.classList.add("show");
+
       bijan.classList.add("show");
 
       result.classList.add("show");
 
-      // love effects
       spawnLoveRain();
       heartBurst();
       fireworks();
@@ -587,13 +589,10 @@
     window.addEventListener("load", () => {
       placeNoInitial();
       placeDogCenter();
-
-      // ninja hidden until first No attempt
       ninja.classList.remove("show");
       ninja.classList.add("hidden");
-
-      // Bijan hidden until YES
       bijan.classList.remove("show");
+      celebration.classList.remove("show");
     });
 
     window.addEventListener("resize", () => {
