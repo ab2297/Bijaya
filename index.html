@@ -35,7 +35,7 @@
 
       background:
         linear-gradient(rgba(0,0,0,.30), rgba(0,0,0,.30)),
-        url("background.jpg") center / cover no-repeat fixed;
+        url("background.jpeg") center / cover no-repeat fixed;
     }
 
     .flowers{
@@ -78,17 +78,19 @@
       overflow:hidden;
     }
 
-    /* Ninja cutout: no background, no border */
+    /* Ninja cutout: hidden by default; shows only after first No attempt */
     .ninja{
       position:absolute;
       right: 10px;
       top: 10px;
       width: 56px;
       height: auto;
-      z-index: 5;
+      z-index: 6;
       pointer-events:none;
       filter: drop-shadow(0 10px 18px rgba(0,0,0,.35));
+      display:none; /* IMPORTANT: hidden initially */
     }
+    .ninja.show{ display:block; }
     .ninja.hidden{ display:none; }
     .ninja img{
       width:100%;
@@ -138,14 +140,16 @@
       left: 16px;
       color:#fff;
       background: linear-gradient(180deg, var(--yes1), var(--yes2));
+      z-index: 5;
     }
     #noBtn{
       left: 50%;
       color:#fff;
       background: linear-gradient(180deg, var(--no1), var(--no2));
-      z-index: 3;
+      z-index: 4; /* behind the dog once we bring dog forward */
     }
 
+    /* Dog chaser */
     .dogChaser{
       position:absolute;
       width: 78px;
@@ -158,10 +162,13 @@
       left: 50%;
       top: 50%;
       transform: translate(-50%, -50%);
-      z-index:2;
+      z-index: 2;   /* default behind buttons */
       transition: left .18s ease, top .18s ease, transform .12s ease;
       pointer-events:none;
       opacity:.98;
+    }
+    .dogChaser.front{
+      z-index: 7;   /* in front of NO after first No attempt */
     }
     .dogChaser img{
       width:100%;
@@ -252,7 +259,6 @@
   </div>
 
   <audio id="barkSound" src="bark.wav" preload="auto"></audio>
-
   <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.2/dist/confetti.browser.min.js"></script>
 
   <script>
@@ -267,6 +273,9 @@
 
     let yesClicked = false;
     let lastBarkMs = 0;
+
+    // NEW: first "No attempt" behavior
+    let noAttemptedOnce = false;
 
     function playBark(){
       const now = Date.now();
@@ -313,8 +322,33 @@
       dogChaser.classList.add("shake");
     }
 
+    // NEW: run once on the first No attempt
+    function onFirstNoAttempt(){
+      if (noAttemptedOnce) return;
+      noAttemptedOnce = true;
+
+      // show ninja only after No is attempted
+      ninja.classList.add("show");
+
+      // bring caspy forward forever
+      dogChaser.classList.add("front");
+
+      // place caspy directly in front of the NO button (blocks it visually)
+      const a = arena.getBoundingClientRect();
+      const b = noBtn.getBoundingClientRect();
+
+      const noCenterX = (b.left - a.left) + b.width / 2;
+      const noCenterY = (b.top  - a.top)  + b.height / 2;
+
+      chaseDogTo(noCenterX, noCenterY);
+    }
+
     function moveNoAway(fromX, fromY){
       if (yesClicked) return;
+
+      // NEW: first time she tries "No"
+      onFirstNoAttempt();
+
       playBark();
 
       const a = arena.getBoundingClientRect();
@@ -358,6 +392,7 @@
       noBtn.style.top  = (ny + btnH/2) + "px";
       noBtn.style.transform = "translateY(-50%)";
 
+      // dog stays "in front" and chases the NO button center
       chaseDogTo(nx + btnW/2, ny + btnH/2);
     }
 
@@ -431,13 +466,11 @@
       if (yesClicked) return;
       yesClicked = true;
 
-      // ninja disappears
+      // hide ninja when YES is clicked (even if it appeared)
       ninja.classList.add("hidden");
 
-      // show photo + message
       result.classList.add("show");
 
-      // park NO & dog
       const a = arena.getBoundingClientRect();
       const btnW = noBtn.offsetWidth;
       const btnH = noBtn.offsetHeight;
@@ -453,6 +486,9 @@
     window.addEventListener("load", () => {
       placeNoInitial();
       placeDogCenter();
+      // Ninja remains hidden until No is attempted
+      ninja.classList.remove("show");
+      ninja.classList.add("hidden"); // safe default
     });
 
     window.addEventListener("resize", () => {
