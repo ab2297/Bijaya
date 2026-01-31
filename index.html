@@ -35,7 +35,7 @@
 
       background:
         linear-gradient(rgba(0,0,0,.30), rgba(0,0,0,.30)),
-        url("background.jpg") center / cover no-repeat fixed;
+        url("background.jpeg") center / cover no-repeat fixed;
     }
 
     .flowers{
@@ -102,6 +102,29 @@
       filter: drop-shadow(0 12px 16px rgba(0,0,0,.35));
     }
 
+    /* Bijan sticker (shows only after YES) */
+    .bijan{
+      position:absolute;
+      right: 10px;
+      top: 10px;
+      width: 78px;           /* bigger than ninja */
+      height:auto;
+      z-index: 8;
+      pointer-events:none;
+      display:none;
+      background: transparent;
+      border:none;
+      box-shadow:none;
+    }
+    .bijan.show{ display:block; }
+    .bijan img{
+      width:100%;
+      height:auto;
+      display:block;
+      background: transparent;
+      filter: drop-shadow(0 12px 16px rgba(0,0,0,.35));
+    }
+
     .title{
       font-weight: 900;
       font-size: clamp(34px, 6vw, 52px);
@@ -149,7 +172,7 @@
       left: 50%;
       color:#fff;
       background: linear-gradient(180deg, var(--no1), var(--no2));
-      z-index: 4; /* dog can go in front */
+      z-index: 4;
     }
 
     /* Dog sticker (transparent PNG). No white box, no border. */
@@ -228,6 +251,7 @@
       .arena{ height: 175px; }
       .btn{ width: 150px; font-size: 17px; }
       .ninja{ width: 44px; }
+      .bijan{ width: 68px; }
       .dogChaser{ width: 86px; }
     }
   </style>
@@ -240,6 +264,10 @@
     <div class="card">
       <div class="ninja hidden" id="ninja">
         <img src="ninja.png" alt="ninja" />
+      </div>
+
+      <div class="bijan" id="bijan">
+        <img src="bijan.png" alt="Bijan" />
       </div>
 
       <div class="title">Will you be my valentine?</div>
@@ -275,6 +303,7 @@
     const flowers = document.getElementById("flowers");
     const barkSound = document.getElementById("barkSound");
     const ninja = document.getElementById("ninja");
+    const bijan = document.getElementById("bijan");
 
     let yesClicked = false;
     let lastBarkMs = 0;
@@ -335,7 +364,7 @@
       ninja.classList.remove("hidden");
       ninja.classList.add("show");
 
-      // bring dog forward forever
+      // bring dog forward forever (blocks visually)
       dogChaser.classList.add("front");
 
       // place dog directly over NO button center initially
@@ -471,15 +500,13 @@
       ninja.classList.remove("show");
       ninja.classList.add("hidden");
 
-      result.classList.add("show");
+      // remove caspy from near the buttons entirely
+      dogChaser.style.display = "none";
 
-      const a = arena.getBoundingClientRect();
-      const btnW = noBtn.offsetWidth;
-      const btnH = noBtn.offsetHeight;
-      noBtn.style.left = (a.width - btnW - 14) + "px";
-      noBtn.style.top  = (a.height - btnH/2 - 12) + "px";
-      noBtn.style.filter = "grayscale(.25) opacity(.8)";
-      chaseDogTo(a.width - 60, a.height - 55);
+      // show Bijan sticker in top-right
+      bijan.classList.add("show");
+
+      result.classList.add("show");
 
       spawnFlowers();
       fireworks();
@@ -488,9 +515,13 @@
     window.addEventListener("load", () => {
       placeNoInitial();
       placeDogCenter();
-      // ninja remains hidden until first No attempt
+
+      // ninja hidden until first No attempt
       ninja.classList.remove("show");
       ninja.classList.add("hidden");
+
+      // Bijan hidden until YES
+      bijan.classList.remove("show");
     });
 
     window.addEventListener("resize", () => {
